@@ -1,0 +1,41 @@
+# Attribute token handling implementations
+
+function queryAttrValue string(szAttributes string, szKey string)
+{
+	result "";
+
+	s_tokenize "%szAttributes" "," arrTokens;
+	
+	for (i, 0, %arrTokens.count, -inc) {
+		s_tokenize "%arrTokens[%i]" ":" arrKeyValue;
+		
+		if (%arrKeyValue.count, -eq, 2) {
+			if ("%arrKeyValue[0]", -eq, "%szKey") {
+				result "%arrKeyValue[1]";
+			};
+		};
+		
+		s_cleartokens arrKeyValue;
+	};
+	
+	s_cleartokens arrTokens;
+};
+
+function storeAttrValue string(szAttributes string, szKey string, szValue string)
+{
+	local szOldValue string;
+	local szOldPair string;
+	local szNewAttributes string;
+
+	result "";
+	
+	call queryAttrValue("%szAttributes", "%szKey") => szOldValue;
+	if (%szOldValue, -nt, "") {
+		set szOldPair <= "%szKey:%szOldValue";
+		set szNewAttributes <= "%szAttributes";
+		
+		s_replace szNewAttributes "%szOldPair" "%szKey:%szValue";
+		
+		result "%szNewAttributes";
+	};
+};

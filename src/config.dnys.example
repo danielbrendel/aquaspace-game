@@ -1,0 +1,18 @@
+# Game settings config script file
+
+const WND_RES_X int <= 800;
+const WND_RES_Y int <= 600;
+const WND_WINDOWED bool <= true;
+const INVALID_DX_HANDLE int <= -1;
+const KEY_UP int <= 38;
+const KEY_LEFT int <= 37;
+const KEY_RIGHT int <= 39;
+const KEY_DOWN int <= 40;
+const KEY_SPACE int <= 32;
+const KEY_MOUSE1 int <= 1;
+const PLAYER_HEALTH int <= 100;
+const PLAYER_ATTACK_RATE int <= 500;
+const PLAYER_HIT_PROTECTION int <= 2000;
+const ASTEROID_SPAWN_RATE int <= 1500;
+const GLOBAL_VOLUME int <= 10;
+const BORDER_BARS int <= 200;

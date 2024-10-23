@@ -1,0 +1,68 @@
+# Explosion specific implementations
+
+function spawnExplosion void(xpos int, ypos int, scale int)
+{
+	local szExplosionPair string;
+	local hExplosionSprite int;
+
+	dx.gfx.loadsprite "%szScriptPath/../assets/sprites/explosion.png" 17 128 128 17 false hExplosionSprite;
+	
+	set szExplosionPair <= "handle:%hExplosionSprite,xpos:%xpos,ypos:%ypos,framecount:0,scale:%scale,dispose:0";
+	
+	item_append arrExplosions "%szExplosionPair";
+	
+	dx.snd.play %hSndBoom %GLOBAL_VOLUME;
+};
+
+function handleExplosions void()
+{
+	local iExplosionXPos int;
+	local iExplosionYPos int;
+	local hExplosionSprite int;
+	local iExplosionFCount int;
+	local fExplosionScale float;
+	local szQueryValue string;
+	local szExplosionPair string;
+	
+	for (iterator, 0, %arrExplosions.length, -inc) {
+		call queryAttrValue("%arrExplosions[%iterator]", "handle") => szQueryValue;
+		set hExplosionSprite <= %szQueryValue;
+		
+		call queryAttrValue("%arrExplosions[%iterator]", "xpos") => szQueryValue;
+		set iExplosionXPos <= %szQueryValue;
+		
+		call queryAttrValue("%arrExplosions[%iterator]", "ypos") => szQueryValue;
+		set iExplosionYPos <= %szQueryValue;
+		
+		call queryAttrValue("%arrExplosions[%iterator]", "framecount") => szQueryValue;
+		set iExplosionFCount <= %szQueryValue;
+		
+		call queryAttrValue("%arrExplosions[%iterator]", "scale") => szQueryValue;
+		set fExplosionScale <= %szQueryValue;
+		
+		++ iExplosionFCount;
+		
+		call storeAttrValue("%arrExplosions[%iterator]", "framecount", %iExplosionFCount) => szExplosionPair;
+		store_item_to_array szExplosionPair arrExplosions %iterator;
+		
+		dx.gfx.drawsprite %hExplosionSprite %iExplosionXPos %iExplosionYPos %iExplosionFCount %fExplosionScale %fExplosionScale false 0 0 0 0;
+	};
+};
+
+function disposeExplosion void()
+{
+	local szQueryValue string;
+	local iFrameCount int;
+	local hExplosionSprite int;
+	
+	call queryAttrValue("%arrExplosions[0]", "framecount") => szQueryValue;
+	set iFrameCount <= %szQueryValue;
+	
+	if (%iFrameCount, -gre, 17) {
+		call queryAttrValue("%arrExplosions[0]", "handle") => szQueryValue;
+		set hExplosionSprite <= %szQueryValue;
+		
+		dx.gfx.freesprite %hExplosionSprite;
+		item_remove arrExplosions 0;
+	};
+};

@@ -1,0 +1,176 @@
+# Asteroids specific implementations
+
+function spawnAsteroid void()
+{
+	local szAsteroidPair string;
+	local hAsteroidSprite int;
+	local iRandomAst int;
+	local iRandomPos int;
+	local iRandomSpeed int;
+	local iBarPos int;
+	
+	set iBarPos <= %WND_RES_X;
+	-= iBarPos %BORDER_BARS;
+	-= iBarPos 64;
+	
+	random 0 4 iRandomAst; ++ iRandomAst;
+	random %BORDER_BARS %iBarPos iRandomPos;
+	random 2 5 iRandomSpeed; ++ iRandomSpeed;
+	
+	if (%iRandomPos, -ls, %BORDER_BARS) {
+		set iRandomPos <= %BORDER_BARS;
+	};
+	
+	dx.gfx.loadsprite "%szScriptPath/../assets/sprites/asteroid%iRandomAst.png" 1 64 64 1 false hAsteroidSprite;
+	
+	set szAsteroidPair <= "handle:%hAsteroidSprite,xpos:%iRandomPos,ypos:-25,speed:%iRandomSpeed,dispose:false";
+	
+	item_append arrAsteroids "%szAsteroidPair";
+};
+
+function handleAsteroids void()
+{
+	local iAsteroidXPos int;
+	local iAsteroidYPos int;
+	local hAsteroidSprite int;
+	local iAsteroidSpeed int;
+	local szQueryValue string;
+	local szAsteroidPair string;
+	
+	for (iterator, 0, %arrAsteroids.length, -inc) {
+		call queryAttrValue("%arrAsteroids[%iterator]", "handle") => szQueryValue;
+		set hAsteroidSprite <= %szQueryValue;
+		
+		call queryAttrValue("%arrAsteroids[%iterator]", "xpos") => szQueryValue;
+		set iAsteroidXPos <= %szQueryValue;
+		
+		call queryAttrValue("%arrAsteroids[%iterator]", "ypos") => szQueryValue;
+		set iAsteroidYPos <= %szQueryValue;
+		
+		call queryAttrValue("%arrAsteroids[%iterator]", "speed") => szQueryValue;
+		set iAsteroidSpeed <= %szQueryValue;
+		
+		+= iAsteroidYPos %iAsteroidSpeed;
+		
+		call storeAttrValue("%arrAsteroids[%iterator]", "ypos", %iAsteroidYPos) => szAsteroidPair;
+		store_item_to_array szAsteroidPair arrAsteroids %iterator;
+		
+		dx.gfx.drawsprite %hAsteroidSprite %iAsteroidXPos %iAsteroidYPos 0 0.0 0.0 false 0 0 0 0;
+	};
+};
+
+function collideAsteroids void()
+{
+	local szQueryValue string;
+	local iPlayerXPos int;
+	local iPlayerYPos int;
+	local iPlayerHealth int;
+	local iAsteroidXPos int;
+	local iAsteroidYPos int;
+	local iCalcWidth int;
+	local iCalcHeight int;
+	local iSpawnExplX int;
+	local iSpawnExplY int;
+	
+	call queryAttrValue("%szPlayerAttributes", "xpos") => szQueryValue;
+	set iPlayerXPos <= %szQueryValue;
+	
+	+= iPlayerXPos 45;
+	
+	call queryAttrValue("%szPlayerAttributes", "ypos") => szQueryValue;
+	set iPlayerYPos <= %szQueryValue;
+	
+	+= iPlayerYPos 50;
+	
+	call queryAttrValue("%szPlayerAttributes", "health") => szQueryValue;
+	set iPlayerHealth <= %szQueryValue;
+	
+	for (astloop, 0, %arrAsteroids.length, -inc) {
+		call queryAttrValue("%arrAsteroids[%astloop]", "xpos") => szQueryValue;
+		set iAsteroidXPos <= %szQueryValue;
+		
+		call queryAttrValue("%arrAsteroids[%astloop]", "ypos") => szQueryValue;
+		set iAsteroidYPos <= %szQueryValue;
+		
+		if (%iPlayerXPos, -gr, %iAsteroidXPos) {
+			if (%iPlayerYPos, -gr, %iAsteroidYPos) {
+				set iCalcWidth <= %iAsteroidXPos;
+				+= iCalcWidth 101;
+				
+				if (%iPlayerXPos, -ls, %iCalcWidth) {
+					set iCalcHeight <= %iAsteroidYPos;
+					+= iCalcHeight 93;
+					
+					if (%iPlayerYPos, -ls, %iCalcHeight) {
+						if (%bMayBeHit, -eq, true) {
+							set bMayBeHit <= false;
+							
+							-= iPlayerHealth 10;
+							
+							dx.snd.play %hSndHit %GLOBAL_VOLUME;
+							
+							if (%iPlayerHealth, -lse, 0) {
+								set bGameRunning <= false;
+								
+								set iSpawnExplX <= %iPlayerXPos;
+								set iSpawnExplY <= %iPlayerYPos;
+								
+								-= iSpawnExplX 69;
+								-= iSpawnExplY 50;
+								
+								call spawnExplosion(%iSpawnExplX, %iSpawnExplY, 2.0) => void;
+							};
+							
+							call storeAttrValue("%szPlayerAttributes", "health", %iPlayerHealth) => szPlayerAttributes;
+						};
+					};
+				};
+			};
+		};
+	};
+};
+
+function disposeAsteroid void()
+{
+	local szQueryValue string;
+	local iAsteroidYPos int;
+	local hAsteroidSprite int;
+	
+	call queryAttrValue("%arrAsteroids[0]", "ypos") => szQueryValue;
+	set iAsteroidYPos <= %szQueryValue;
+	
+	if (%iAsteroidYPos, -gre, %WND_RES_Y) {
+		call queryAttrValue("%arrAsteroids[0]", "handle") => szQueryValue;
+		set hAsteroidSprite <= %szQueryValue;
+	
+		dx.gfx.freesprite %hAsteroidSprite;
+		item_remove arrAsteroids 0;
+	};
+};
+
+function clearAsteroids void()
+{
+	local szQueryValue string;
+	local bDisposeFlag bool;
+	local hAsteroidSprite int;
+	local bDoSkip bool;
+	
+	set bDoSkip <= false;
+
+	for (astloop, 0, %arrAsteroids.length, -inc) {
+		if (%bDoSkip, -eq, false) {
+			call queryAttrValue("%arrAsteroids[%astloop]", "dispose") => szQueryValue;
+			set bDisposeFlag <= %szQueryValue;
+			
+			if (%bDisposeFlag, -eq, true) {
+				call queryAttrValue("%arrAsteroids[%astloop]", "handle") => szQueryValue;
+				set hAsteroidSprite <= %szQueryValue;
+				
+				dx.gfx.freesprite %hAsteroidSprite;
+				item_remove arrAsteroids %astloop;
+				
+				set bDoSkip <= true;
+			};
+		};
+	};
+};

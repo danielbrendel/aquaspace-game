@@ -1,0 +1,147 @@
+# Bullet specific implementations
+
+function spawnBullet void(xpos int, ypos int)
+{
+	local szBulletPair string;
+	local hBulletSprite int;
+	
+	dx.gfx.loadsprite "%szScriptPath/../assets/sprites/laser.bmp" 1 8 42 1 false hBulletSprite;
+	
+	set szBulletPair <= "handle:%hBulletSprite,xpos:%xpos,ypos:%ypos,dispose:false";
+	
+	item_append arrPlayerBullets "%szBulletPair";
+};
+
+function handleBullets void()
+{
+	local iBulletXPos int;
+	local iBulletYPos int;
+	local hBulletSprite int;
+	local szQueryValue string;
+	local szBulletPair string;
+	
+	for (iterator, 0, %arrPlayerBullets.length, -inc) {
+		call queryAttrValue("%arrPlayerBullets[%iterator]", "handle") => szQueryValue;
+		set hBulletSprite <= %szQueryValue;
+		
+		call queryAttrValue("%arrPlayerBullets[%iterator]", "xpos") => szQueryValue;
+		set iBulletXPos <= %szQueryValue;
+		
+		call queryAttrValue("%arrPlayerBullets[%iterator]", "ypos") => szQueryValue;
+		set iBulletYPos <= %szQueryValue;
+		
+		-= iBulletYPos 10;
+		
+		call storeAttrValue("%arrPlayerBullets[%iterator]", "ypos", %iBulletYPos) => szBulletPair;
+		store_item_to_array szBulletPair arrPlayerBullets %iterator;
+		
+		dx.gfx.drawsprite %hBulletSprite %iBulletXPos %iBulletYPos 0 0.0 0.0 false 0 0 0 0;
+	};
+};
+
+function collideBullets void()
+{
+	local szQueryValue string;
+	local iBulletXPos int;
+	local iBulletYPos int;
+	local iAsteroidXPos int;
+	local iAsteroidYPos int;
+	local iCalcWidth int;
+	local iCalcHeight int;
+    local szBulletPair string;
+	local szAsteroidPair string;
+	local bDisposeFlag bool;
+	
+	for (bulloop, 0, %arrPlayerBullets.length, -inc) {
+		call queryAttrValue("%arrPlayerBullets[%bulloop]", "xpos") => szQueryValue;
+		set iBulletXPos <= %szQueryValue;
+		
+		call queryAttrValue("%arrPlayerBullets[%bulloop]", "ypos") => szQueryValue;
+		set iBulletYPos <= %szQueryValue;
+		
+		for (astloop, 0, %arrAsteroids.length, -inc) {
+			call queryAttrValue("%arrAsteroids[%astloop]", "xpos") => szQueryValue;
+			set iAsteroidXPos <= %szQueryValue;
+			
+			call queryAttrValue("%arrAsteroids[%astloop]", "ypos") => szQueryValue;
+			set iAsteroidYPos <= %szQueryValue;
+			
+			call queryAttrValue("%arrAsteroids[%astloop]", "dispose") => szQueryValue;
+			set bDisposeFlag <= %szQueryValue;
+			
+			if (%bDisposeFlag, -nt, true) {
+				if (%iBulletXPos, -gr, %iAsteroidXPos) {
+					if (%iBulletYPos, -gr, %iAsteroidYPos) {
+						set iCalcWidth <= %iAsteroidXPos;
+						+= iCalcWidth 64;
+						
+						if (%iBulletXPos, -ls, %iCalcWidth) {
+							set iCalcHeight <= %iAsteroidYPos;
+							+= iCalcHeight 64;
+							
+							if (%iBulletYPos, -ls, %iCalcHeight) {
+								call addPlayerScore() => void;
+								
+								-= iBulletXPos 69;
+								-= iBulletYPos 90;
+								
+								call spawnExplosion(%iBulletXPos, %iBulletYPos, 1.0) => void;
+								
+								call storeAttrValue("%arrAsteroids[%astloop]", "dispose", "true") => szAsteroidPair;
+								store_item_to_array szAsteroidPair arrAsteroids %astloop;
+
+                                call storeAttrValue("%arrPlayerBullets[%bulloop]", "dispose", "true") => szBulletPair;
+                                store_item_to_array szBulletPair arrPlayerBullets %bulloop;
+							};
+						};
+					};
+				};
+			};
+		};
+	};
+};
+
+function disposeBullet void()
+{
+	local szQueryValue string;
+	local iBulletYPos int;
+	local hBulletSprite int;
+	
+	call queryAttrValue("%arrPlayerBullets[0]", "ypos") => szQueryValue;
+	set iBulletYPos <= %szQueryValue;
+	
+	if (%iBulletYPos, -lse, -25) {
+		call queryAttrValue("%arrPlayerBullets[0]", "handle") => szQueryValue;
+		set hBulletSprite <= %szQueryValue;
+	
+		dx.gfx.freesprite %hBulletSprite;
+		item_remove arrPlayerBullets 0;
+	};
+};
+
+function clearBullets void()
+{
+	local szQueryValue string;
+	local bDisposeFlag bool;
+	local hBulletSprite int;
+	local bDoSkip bool;
+	
+	set bDoSkip <= false;
+
+	for (bulloop, 0, %arrPlayerBullets.length, -inc) {
+		if (%bDoSkip, -eq, false) {
+			call queryAttrValue("%arrPlayerBullets[%bulloop]", "dispose") => szQueryValue;
+			set bDisposeFlag <= %szQueryValue;
+			
+			if (%bDisposeFlag, -eq, true) {
+				call queryAttrValue("%arrPlayerBullets[%bulloop]", "handle") => szQueryValue;
+				set hBulletSprite <= %szQueryValue;
+				
+				dx.gfx.freesprite %hBulletSprite;
+				item_remove arrPlayerBullets %bulloop;
+				
+				set bDoSkip <= true;
+			};
+		};
+	};
+};

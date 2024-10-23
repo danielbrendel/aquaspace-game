@@ -1,0 +1,348 @@
+# AquaSpace main script file
+
+require "array";
+require "auto";
+require "dx.window";
+require "dx.graphics";
+require "dx.sound";
+require "strings";
+
+global szScriptPath string;
+global bDxValid bool;
+global hDefFont int;
+global hPlayerSprite int;
+global szPlayerAttributes string;
+global iCalcPlayerXPos int;
+global iCalcPlayerYPos int;
+global bMayShoot bool;
+global bMayBeHit bool;
+global hSndAttack int;
+global hSndHit int;
+global hSndBoom int;
+global bGameRunning bool;
+global hButton int;
+global bHoverColor bool;
+global iMouseButtonX int;
+global iMouseButtonY int;
+
+array arrPlayerBullets string 0 ();
+array arrAsteroids string 0 ();
+array arrExplosions string 0 ();
+
+getscriptpath szScriptPath;
+
+set bMayShoot <= true;
+set bMayBeHit <= true;
+set bGameRunning <= true;
+set bHoverColor <= false;
+
+exec "%szScriptPath/config.dnys";
+exec "%szScriptPath/attributes.dnys";
+exec "%szScriptPath/player.dnys";
+exec "%szScriptPath/bullets.dnys";
+exec "%szScriptPath/asteroids.dnys";
+exec "%szScriptPath/explosions.dnys";
+
+function tmrMayShoot_OnElapsed bool()
+{
+	set bMayShoot <= true;
+	
+	result true;
+};
+
+function tmrMayBeHit_OnElapsed bool()
+{
+	set bMayBeHit <= true;
+	
+	result true;
+};
+
+function tmrSpawnAsteroid_OnElapsed bool()
+{
+	call spawnAsteroid() => void;
+	
+	result true;
+};
+
+function restartGame void()
+{
+	print "Restarting game";
+	
+	call initPlayer() => szPlayerAttributes;
+	
+	resize_array arrAsteroids 0;
+	resize_array arrPlayerBullets 0;
+	
+	set bGameRunning <= true;
+};
+
+function DXWND_OnCreate void(hWnd int)
+{
+    local bGfxInit bool;
+
+    print "Window handle: %hWnd";
+
+    dx.gfx.initialize %hWnd %WND_WINDOWED %WND_RES_X %WND_RES_Y 0 0 0 0 bGfxInit;
+    dx.snd.initialize %hWnd;
+
+    dx.gfx.loadfont "Verdana" 15 30 hDefFont;
+    if (%hDefFont, -eq, %INVALID_DX_HANDLE) {
+        print "Failed to load font!";
+    };
+	
+	dx.gfx.setbgimage "%szScriptPath/../assets/sprites/background.png";
+	
+	dx.gfx.loadsprite "%szScriptPath/../assets/sprites/player.png" 1 93 101 1 false hPlayerSprite;
+	if (%hPlayerSprite, -eq, %INVALID_DX_HANDLE) {
+        print "Failed to load player sprite!";
+    };
+	
+	dx.gfx.loadsprite "%szScriptPath/../assets/sprites/button.png" 1 190 49 1 false hButton;
+	if (%hButton, -eq, %INVALID_DX_HANDLE) {
+		print "Failed to load button image";
+	};
+	
+	aut_addtimer "tmrMayShoot" %PLAYER_ATTACK_RATE;
+	aut_addtimer "tmrMayBeHit" %PLAYER_HIT_PROTECTION;
+	aut_addtimer "tmrSpawnAsteroid" %ASTEROID_SPAWN_RATE;
+	
+	dx.snd.query "%szScriptPath/../assets/sounds/attack.wav" hSndAttack;
+	dx.snd.query "%szScriptPath/../assets/sounds/hit.wav" hSndHit;
+	dx.snd.query "%szScriptPath/../assets/sounds/boom.wav" hSndBoom;
+	
+    print "DX.Graphics and DX.Sound initialized";
+};
+
+function DXWND_OnDraw void()
+{
+	local iBarXPos int;
+	local szPlayerHealth string;
+	local szPlayerScore string;
+	local szPlayerXPos string;
+	local szPlayerYPos string;
+	local iPlayerHitColor int;
+	local bOverwriteColor bool;
+	local iCenterXPos int;
+	local iCenterYPos int;
+	local iLabelHoverColor int;
+	
+    dx.gfx.drawbegin;
+	
+	dx.gfx.drawfilledbox 0 0 %BORDER_BARS %WND_RES_Y 0 0 0 150;
+	
+	set iBarXPos <= %WND_RES_X;
+	-= iBarXPos %BORDER_BARS;
+	dx.gfx.drawfilledbox %iBarXPos 0 %BORDER_BARS %WND_RES_Y 0 0 0 150;
+	
+	call queryAttrValue("%szPlayerAttributes", "health") => szPlayerHealth;
+	call queryAttrValue("%szPlayerAttributes", "score") => szPlayerScore;
+
+	dx.gfx.drawstring %hDefFont "Health: %szPlayerHealth" 5 5 255 255 255 150;
+    dx.gfx.drawstring %hDefFont "Score: %szPlayerScore" 5 35 255 255 255 150;
+	
+	call queryAttrValue("%szPlayerAttributes", "xpos") => szPlayerXPos;
+	call queryAttrValue("%szPlayerAttributes", "ypos") => szPlayerYPos;
+	
+	set iPlayerHitColor <= 0;
+	if (%bMayBeHit, -eq, false) {
+		set bOverwriteColor <= true;
+		set iPlayerHitColor <= 255;
+	} else {
+		set bOverwriteColor <= false;
+	};
+	
+	if (%bGameRunning, -eq, true) {
+		dx.gfx.drawsprite %hPlayerSprite %szPlayerXPos %szPlayerYPos 0 0.0 0.0 %bOverwriteColor %iPlayerHitColor 0 0 255;
+		
+		call handleBullets() => void;
+		call collideBullets() => void;
+		call disposeBullet() => void;
+		call clearBullets() => void;
+		
+		call handleAsteroids() => void;
+		call collideAsteroids() => void;
+		call disposeAsteroid() => void;
+		call clearAsteroids() => void;
+	} else {
+		set iCenterXPos <= %WND_RES_X;
+		/= iCenterXPos 2;
+		-= iCenterXPos 75;
+		
+		set iCenterYPos <= %WND_RES_Y;
+		/= iCenterYPos 2;
+		-= iCenterYPos 50;
+	
+		dx.gfx.drawstring %hDefFont "Game Over!" %iCenterXPos %iCenterYPos 255 0 0 255;
+		
+		-= iCenterXPos 10;
+		+= iCenterYPos 50;
+		
+		dx.gfx.drawsprite %hButton %iCenterXPos %iCenterYPos 0 0.0 0.0 false 0 0 0 0;
+		
+		+= iCenterXPos 50;
+		+= iCenterYPos 5;
+		
+		set iLabelHoverColor <= 200;
+		if (%bHoverColor, -eq, true) {
+			set iLabelHoverColor <= 255;
+		};
+		
+		dx.gfx.drawstring %hDefFont "Restart" %iCenterXPos %iCenterYPos %iLabelHoverColor %iLabelHoverColor %iLabelHoverColor 255;
+	};
+	
+	call handleExplosions() => void;
+	call disposeExplosion() => void;
+
+    dx.gfx.drawend;
+};
+
+function DXWND_OnKeyInput void(vKey int, bDown bool, bCtrlHeld bool, bShiftHeld bool, bAltHeld bool)
+{
+	local szQueryValue string;
+	local iPlayerXPos int;
+	local iPlayerYPos int;
+	local iBarPos int;
+
+	if (%bGameRunning, -eq, true) {
+		if (%vKey, -eq, %KEY_UP) {
+			call queryAttrValue("%szPlayerAttributes", "ypos") => szQueryValue;
+			
+			set iPlayerYPos <= %szQueryValue;
+			
+			if (%iPlayerYPos, -gr, 0) {
+				-= iPlayerYPos 10;
+				call storeAttrValue("%szPlayerAttributes", "ypos", %iPlayerYPos) => szPlayerAttributes;
+			};
+		};
+		
+		if (%vKey, -eq, %KEY_LEFT) {
+			call queryAttrValue("%szPlayerAttributes", "xpos") => szQueryValue;
+			
+			set iPlayerXPos <= %szQueryValue;
+			
+			if (%iPlayerXPos, -gr, %BORDER_BARS) {
+				-= iPlayerXPos 10;
+				call storeAttrValue("%szPlayerAttributes", "xpos", %iPlayerXPos) => szPlayerAttributes;
+			};
+		};
+		
+		if (%vKey, -eq, %KEY_RIGHT) {
+			call queryAttrValue("%szPlayerAttributes", "xpos") => szQueryValue;
+			
+			set iPlayerXPos <= %szQueryValue;
+			set iBarPos <= %WND_RES_X;
+			
+			-= iBarPos %BORDER_BARS;
+			-= iBarPos 93;
+			
+			if (%iPlayerXPos, -ls, %iBarPos) {
+				+= iPlayerXPos 10;
+				call storeAttrValue("%szPlayerAttributes", "xpos", %iPlayerXPos) => szPlayerAttributes;
+			};
+		};
+		
+		if (%vKey, -eq, %KEY_DOWN) {
+			call queryAttrValue("%szPlayerAttributes", "ypos") => szQueryValue;
+			
+			set iPlayerYPos <= %szQueryValue;
+
+			set iBarPos <= %WND_RES_Y;
+			-= iBarPos 100;
+			
+			if (%iPlayerYPos, -ls, %iBarPos) {
+				+= iPlayerYPos 10;
+				call storeAttrValue("%szPlayerAttributes", "ypos", %iPlayerYPos) => szPlayerAttributes;
+			};
+		};
+		
+		if (%vKey, -eq, %KEY_SPACE) {
+			if (%bMayShoot, -eq, true) {
+				set bMayShoot <= false;
+				
+				call queryAttrValue("%szPlayerAttributes", "xpos") => szQueryValue;
+				set iPlayerXPos <= %szQueryValue;
+				+= iPlayerXPos 43;
+				
+				call queryAttrValue("%szPlayerAttributes", "ypos") => szQueryValue;
+				set iPlayerYPos <= %szQueryValue;
+				-= iPlayerYPos 5;
+				
+				call spawnBullet(%iPlayerXPos, %iPlayerYPos) => void;
+				
+				dx.snd.play %hSndAttack %GLOBAL_VOLUME;
+			};
+		};
+	};
+};
+
+function DXWND_OnMouseInput void(x int, y int, iMouseKey int, bDown bool, bCtrlHeld bool, bShiftHeld bool, bAltHeld bool)
+{
+	local iButtonX int;
+	local iButtonY int;
+	local iRangeWidth int;
+	local iRangeHeight int;
+	
+	if (%iMouseKey, -eq, 0) {
+		set iMouseButtonX <= %x;
+		set iMouseButtonY <= %y;
+	};
+	
+	set bHoverColor <= false;
+	
+	if (%bGameRunning, -eq, false) {
+		set iButtonX <= %WND_RES_X;
+		/= iButtonX 2;
+		-= iButtonX 85;
+		
+		set iButtonY <= %WND_RES_Y;
+		/= iButtonY 2;
+		
+		set iRangeWidth <= %iButtonX;
+		+= iRangeWidth 190;
+		
+		set iRangeHeight <= %iButtonY;
+		+= iRangeHeight 49;
+
+		if (%iMouseButtonX, -gr, %iButtonX) {
+			if (%iMouseButtonX, -ls, %iRangeWidth) {
+				if (%iMouseButtonY, -gr, %iButtonY) {
+					if (%iMouseButtonY, -ls, %iRangeHeight) {
+						set bHoverColor <= true;
+					
+						if (%iMouseKey, -eq, %KEY_MOUSE1) {
+							call restartGame() => void;
+						};
+					};
+				};
+			};
+		};
+	};
+};
+
+function DXWND_OnDestroy void()
+{
+    print "Window destroyed";
+
+    dx.gfx.release;
+    dx.snd.release;
+};
+
+call initPlayer() => szPlayerAttributes;
+
+dx.wnd.set_event "OnCreate" DXWND_OnCreate;
+dx.wnd.set_event "OnDraw" DXWND_OnDraw;
+dx.wnd.set_event "OnKeyInput" DXWND_OnKeyInput;
+dx.wnd.set_event "OnMouseInput" DXWND_OnMouseInput;
+dx.wnd.set_event "OnDestroy" DXWND_OnDestroy;
+
+dx.wnd.initialize "AquaSpace: Space Shooter Game" %WND_RES_X %WND_RES_Y;
+
+dx.wnd.is_valid bDxValid;
+
+while (%bDxValid, -eq, true) {
+	aut_calctimers;
+    dx.wnd.process;
+    dx.wnd.is_valid bDxValid;
+};
+
+dx.wnd.release;

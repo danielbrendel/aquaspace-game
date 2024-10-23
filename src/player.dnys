@@ -1,0 +1,30 @@
+# Player specific implementations
+
+function initPlayer string()
+{
+	local iInitPosX int;
+	local iInitPosY int;
+	
+	set iInitPosX <= %WND_RES_X;
+	set iInitPosY <= %WND_RES_Y;
+
+	/= iInitPosX 2;
+
+	-= iInitPosX 50;
+	-= iInitPosY 135;
+
+	result "health:%PLAYER_HEALTH,score:0,xpos:%iInitPosX,ypos:%iInitPosY";
+};
+
+function addPlayerScore void()
+{
+	local szQueryValue string;
+	local iPlayerScore int;
+	
+	call queryAttrValue("%szPlayerAttributes", "score") => szQueryValue;
+	set iPlayerScore <= %szQueryValue;
+	
+	++ iPlayerScore;
+		
+	call storeAttrValue("%szPlayerAttributes", "score", "%iPlayerScore") => szPlayerAttributes;
+};
