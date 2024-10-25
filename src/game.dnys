@@ -116,20 +116,6 @@ function DXWND_OnCreate void(hWnd int)
 function DXWND_OnDraw void()
 {
 	local iBarXPos int;
-	local szPlayerHealth string;
-	local szPlayerScore string;
-	local szPlayerXPos string;
-	local szPlayerYPos string;
-	local iHealthColorR int;
-	local iHealthColorG int;
-	local iHealthColorB int;
-	local iHealthColorA int;
-	local iScoreColorR int;
-	local iScoreColorG int;
-	local iScoreColorB int;
-	local iScoreColorA int;
-	local iPlayerHitColor int;
-	local bOverwriteColor bool;
 	local iCenterXPos int;
 	local iCenterYPos int;
 	local iLabelHoverColor int;
@@ -141,59 +127,12 @@ function DXWND_OnDraw void()
 	set iBarXPos <= %WND_RES_X;
 	-= iBarXPos %BORDER_BARS;
 	dx.gfx.drawfilledbox %iBarXPos 0 %BORDER_BARS %WND_RES_Y 0 0 0 150;
-	
-	call queryAttrValue("%szPlayerAttributes", "health") => szPlayerHealth;
 
-	if (%szPlayerHealth, -lse, 25) {
-		set iHealthColorR <= 255;
-		set iHealthColorG <= 0;
-		set iHealthColorB <= 0;
-		set iHealthColorA <= 150;
-	} elseif (%szPlayerHealth, -lse, 75) {
-		set iHealthColorR <= 150;
-		set iHealthColorG <= 150;
-		set iHealthColorB <= 0;
-		set iHealthColorA <= 150;
-	} else {
-		set iHealthColorR <= 0;
-		set iHealthColorG <= 255;
-		set iHealthColorB <= 0;
-		set iHealthColorA <= 150;
-	};
-
-	dx.gfx.drawstring %hDefFont "Health:" 5 5 255 255 255 150;
-	dx.gfx.drawstring %hDefFont "%szPlayerHealth" 115 5 %iHealthColorR %iHealthColorG %iHealthColorB %iHealthColorA;
-
-	call queryAttrValue("%szPlayerAttributes", "score") => szPlayerScore;
-
-	if (%bGameRunning, -eq, false) {
-		set iScoreColorR <= 41;
-		set iScoreColorG <= 132;
-		set iScoreColorB <= 252;
-		set iScoreColorA <= 150;
-	} else {
-		set iScoreColorR <= 255;
-		set iScoreColorG <= 255;
-		set iScoreColorB <= 255;
-		set iScoreColorA <= 150;
-	};
-
-    dx.gfx.drawstring %hDefFont "Score:" 5 35 255 255 255 150;
-	dx.gfx.drawstring %hDefFont "%szPlayerScore" 105 35 %iScoreColorR %iScoreColorG %iScoreColorB %iScoreColorA;
-	
-	call queryAttrValue("%szPlayerAttributes", "xpos") => szPlayerXPos;
-	call queryAttrValue("%szPlayerAttributes", "ypos") => szPlayerYPos;
-	
-	set iPlayerHitColor <= 0;
-	if (%bMayBeHit, -eq, false) {
-		set bOverwriteColor <= true;
-		set iPlayerHitColor <= 255;
-	} else {
-		set bOverwriteColor <= false;
-	};
+	call drawPlayerHealth() => void;
+	call drawPlayerScore() => void;
 	
 	if (%bGameRunning, -eq, true) {
-		dx.gfx.drawsprite %hPlayerSprite %szPlayerXPos %szPlayerYPos 0 0.0 0.0 %bOverwriteColor %iPlayerHitColor 0 0 255;
+		call drawPlayerSprite() => void;
 		
 		call handleBullets() => void;
 		call collideBullets() => void;

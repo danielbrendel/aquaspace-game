@@ -28,3 +28,81 @@ function addPlayerScore void()
 		
 	call storeAttrValue("%szPlayerAttributes", "score", "%iPlayerScore") => szPlayerAttributes;
 };
+
+function drawPlayerHealth void()
+{
+	local szPlayerHealth string;
+	local iHealthColorR int;
+	local iHealthColorG int;
+	local iHealthColorB int;
+	local iHealthColorA int;
+
+	call queryAttrValue("%szPlayerAttributes", "health") => szPlayerHealth;
+
+	if (%szPlayerHealth, -lse, 25) {
+		set iHealthColorR <= 255;
+		set iHealthColorG <= 0;
+		set iHealthColorB <= 0;
+		set iHealthColorA <= 150;
+	} elseif (%szPlayerHealth, -lse, 75) {
+		set iHealthColorR <= 150;
+		set iHealthColorG <= 150;
+		set iHealthColorB <= 0;
+		set iHealthColorA <= 150;
+	} else {
+		set iHealthColorR <= 0;
+		set iHealthColorG <= 255;
+		set iHealthColorB <= 0;
+		set iHealthColorA <= 150;
+	};
+
+	dx.gfx.drawstring %hDefFont "Health:" 5 5 255 255 255 150;
+	dx.gfx.drawstring %hDefFont "%szPlayerHealth" 115 5 %iHealthColorR %iHealthColorG %iHealthColorB %iHealthColorA;
+};
+
+function drawPlayerScore void()
+{
+	local szPlayerScore string;
+	local iScoreColorR int;
+	local iScoreColorG int;
+	local iScoreColorB int;
+	local iScoreColorA int;
+
+	call queryAttrValue("%szPlayerAttributes", "score") => szPlayerScore;
+
+	if (%bGameRunning, -eq, false) {
+		set iScoreColorR <= 41;
+		set iScoreColorG <= 132;
+		set iScoreColorB <= 252;
+		set iScoreColorA <= 150;
+	} else {
+		set iScoreColorR <= 255;
+		set iScoreColorG <= 255;
+		set iScoreColorB <= 255;
+		set iScoreColorA <= 150;
+	};
+
+    dx.gfx.drawstring %hDefFont "Score:" 5 35 255 255 255 150;
+	dx.gfx.drawstring %hDefFont "%szPlayerScore" 105 35 %iScoreColorR %iScoreColorG %iScoreColorB %iScoreColorA;
+};
+
+function drawPlayerSprite void()
+{
+	local szPlayerXPos string;
+	local szPlayerYPos string;
+	local iPlayerHitColor int;
+	local bOverwriteColor bool;
+	
+	call queryAttrValue("%szPlayerAttributes", "xpos") => szPlayerXPos;
+	call queryAttrValue("%szPlayerAttributes", "ypos") => szPlayerYPos;
+	
+	set iPlayerHitColor <= 0;
+	if (%bMayBeHit, -eq, false) {
+		set bOverwriteColor <= true;
+		set iPlayerHitColor <= 255;
+	} else {
+		set bOverwriteColor <= false;
+	};
+
+	dx.gfx.drawsprite %hPlayerSprite %szPlayerXPos %szPlayerYPos 0 0.0 0.0 %bOverwriteColor %iPlayerHitColor 0 0 255;
+};
