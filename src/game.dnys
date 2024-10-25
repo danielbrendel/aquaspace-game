@@ -120,6 +120,10 @@ function DXWND_OnDraw void()
 	local szPlayerScore string;
 	local szPlayerXPos string;
 	local szPlayerYPos string;
+	local iHealthColorR int;
+	local iHealthColorG int;
+	local iHealthColorB int;
+	local iHealthColorA int;
 	local iPlayerHitColor int;
 	local bOverwriteColor bool;
 	local iCenterXPos int;
@@ -135,9 +139,28 @@ function DXWND_OnDraw void()
 	dx.gfx.drawfilledbox %iBarXPos 0 %BORDER_BARS %WND_RES_Y 0 0 0 150;
 	
 	call queryAttrValue("%szPlayerAttributes", "health") => szPlayerHealth;
-	call queryAttrValue("%szPlayerAttributes", "score") => szPlayerScore;
 
-	dx.gfx.drawstring %hDefFont "Health: %szPlayerHealth" 5 5 255 255 255 150;
+	if (%szPlayerHealth, -lse, 25) {
+		set iHealthColorR <= 255;
+		set iHealthColorG <= 0;
+		set iHealthColorB <= 0;
+		set iHealthColorA <= 150;
+	} elseif (%szPlayerHealth, -lse, 75) {
+		set iHealthColorR <= 150;
+		set iHealthColorG <= 150;
+		set iHealthColorB <= 0;
+		set iHealthColorA <= 150;
+	} else {
+		set iHealthColorR <= 0;
+		set iHealthColorG <= 255;
+		set iHealthColorB <= 0;
+		set iHealthColorA <= 150;
+	};
+
+	dx.gfx.drawstring %hDefFont "Health:" 5 5 255 255 255 150;
+	dx.gfx.drawstring %hDefFont "%szPlayerHealth" 115 5 %iHealthColorR %iHealthColorG %iHealthColorB %iHealthColorA;
+
+	call queryAttrValue("%szPlayerAttributes", "score") => szPlayerScore;
     dx.gfx.drawstring %hDefFont "Score: %szPlayerScore" 5 35 255 255 255 150;
 	
 	call queryAttrValue("%szPlayerAttributes", "xpos") => szPlayerXPos;
