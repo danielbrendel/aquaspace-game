@@ -23,7 +23,7 @@ function spawnAsteroid void()
 	
 	dx.gfx.loadsprite "%szScriptPath/../assets/sprites/asteroid%iRandomAst.png" 1 64 64 1 false hAsteroidSprite;
 	
-	set szAsteroidPair <= "handle:%hAsteroidSprite,xpos:%iRandomPos,ypos:-25,speed:%iRandomSpeed,dispose:false";
+	set szAsteroidPair <= "handle:%hAsteroidSprite,xpos:%iRandomPos,ypos:-25,rot:0.00,speed:%iRandomSpeed,dispose:false";
 	
 	item_append arrAsteroids "%szAsteroidPair";
 };
@@ -34,6 +34,7 @@ function handleAsteroids void()
 	local iAsteroidYPos int;
 	local hAsteroidSprite int;
 	local iAsteroidSpeed int;
+	local fRotation float;
 	local szQueryValue string;
 	local szAsteroidPair string;
 	
@@ -46,16 +47,27 @@ function handleAsteroids void()
 		
 		call queryAttrValue("%arrAsteroids[%iterator]", "ypos") => szQueryValue;
 		set iAsteroidYPos <= %szQueryValue;
+
+		call queryAttrValue("%arrAsteroids[%iterator]", "rot") => szQueryValue;
+		set fRotation <= %szQueryValue;
 		
 		call queryAttrValue("%arrAsteroids[%iterator]", "speed") => szQueryValue;
 		set iAsteroidSpeed <= %szQueryValue;
 		
 		+= iAsteroidYPos %iAsteroidSpeed;
+
+		+= fRotation 0.05;
+		if (%fRotation, -gre, 6.30) {
+			set fRotation <= 0.00;
+		};
 		
 		call storeAttrValue("%arrAsteroids[%iterator]", "ypos", %iAsteroidYPos) => szAsteroidPair;
 		store_item_to_array szAsteroidPair arrAsteroids %iterator;
+
+		call storeAttrValue("%arrAsteroids[%iterator]", "rot", %fRotation) => szAsteroidPair;
+		store_item_to_array szAsteroidPair arrAsteroids %iterator;
 		
-		dx.gfx.drawsprite %hAsteroidSprite %iAsteroidXPos %iAsteroidYPos 0 0.0 0.0 false 0 0 0 0;
+		dx.gfx.drawsprite %hAsteroidSprite %iAsteroidXPos %iAsteroidYPos 0 %fRotation 0.0 false 0 0 0 0;
 	};
 };
 
