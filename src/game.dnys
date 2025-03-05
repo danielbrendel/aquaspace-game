@@ -19,11 +19,13 @@ global bMayBeHit bool;
 global hSndAttack int;
 global hSndHit int;
 global hSndBoom int;
+global hSndTheme int;
 global bGameRunning bool;
 global hButton int;
 global bHoverColor bool;
 global iMouseButtonX int;
 global iMouseButtonY int;
+global bDrawOnce bool;
 
 array arrPlayerBullets string 0 ();
 array arrAsteroids string 0 ();
@@ -109,7 +111,8 @@ function DXWND_OnCreate void(hWnd int)
 	dx.snd.query "%szScriptPath/../assets/sounds/attack.wav" hSndAttack;
 	dx.snd.query "%szScriptPath/../assets/sounds/hit.wav" hSndHit;
 	dx.snd.query "%szScriptPath/../assets/sounds/boom.wav" hSndBoom;
-	
+	dx.snd.query "%szScriptPath/../assets/sounds/theme.wav" hSndTheme;
+
     print "DX.Graphics and DX.Sound initialized";
 };
 
@@ -119,6 +122,14 @@ function DXWND_OnDraw void()
 	local iCenterXPos int;
 	local iCenterYPos int;
 	local iLabelHoverColor int;
+
+	if (%bDrawOnce, -eq, false) {
+		set bDrawOnce <= true;
+		
+		if (%hSndTheme, -nt, -1) {
+			dx.snd.play %hSndTheme %GLOBAL_VOLUME %DXSND_LOOP;
+		};
+	};
 	
     dx.gfx.drawbegin;
 	
