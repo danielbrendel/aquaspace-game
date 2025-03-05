@@ -9,7 +9,7 @@ function spawnBullet void(xpos int, ypos int)
 	
 	set szBulletPair <= "handle:%hBulletSprite,xpos:%xpos,ypos:%ypos,dispose:false";
 	
-	item_append arrPlayerBullets "%szBulletPair";
+	array_item_append arrPlayerBullets "%szBulletPair";
 };
 
 function handleBullets void()
@@ -33,7 +33,7 @@ function handleBullets void()
 		-= iBulletYPos 10;
 		
 		call storeAttrValue("%arrPlayerBullets[%iterator]", "ypos", %iBulletYPos) => szBulletPair;
-		store_item_to_array szBulletPair arrPlayerBullets %iterator;
+		array_item_set szBulletPair arrPlayerBullets %iterator;
 		
 		dx.gfx.drawsprite %hBulletSprite %iBulletXPos %iBulletYPos 0 0.0 0.0 false 0 0 0 0;
 	};
@@ -88,10 +88,10 @@ function collideBullets void()
 								call spawnExplosion(%iBulletXPos, %iBulletYPos, 1.0) => void;
 								
 								call storeAttrValue("%arrAsteroids[%astloop]", "dispose", "true") => szAsteroidPair;
-								store_item_to_array szAsteroidPair arrAsteroids %astloop;
+								array_item_set szAsteroidPair arrAsteroids %astloop;
 
                                 call storeAttrValue("%arrPlayerBullets[%bulloop]", "dispose", "true") => szBulletPair;
-                                store_item_to_array szBulletPair arrPlayerBullets %bulloop;
+                                array_item_set szBulletPair arrPlayerBullets %bulloop;
 							};
 						};
 					};
@@ -115,7 +115,7 @@ function disposeBullet void()
 		set hBulletSprite <= %szQueryValue;
 	
 		dx.gfx.freesprite %hBulletSprite;
-		item_remove arrPlayerBullets 0;
+		array_item_remove arrPlayerBullets 0;
 	};
 };
 
@@ -138,7 +138,7 @@ function clearBullets void()
 				set hBulletSprite <= %szQueryValue;
 				
 				dx.gfx.freesprite %hBulletSprite;
-				item_remove arrPlayerBullets %bulloop;
+				array_item_remove arrPlayerBullets %bulloop;
 				
 				set bDoSkip <= true;
 			};

@@ -9,7 +9,7 @@ function spawnExplosion void(xpos int, ypos int, scale int)
 	
 	set szExplosionPair <= "handle:%hExplosionSprite,xpos:%xpos,ypos:%ypos,framecount:0,scale:%scale,dispose:0";
 	
-	item_append arrExplosions "%szExplosionPair";
+	array_item_append arrExplosions "%szExplosionPair";
 	
 	dx.snd.play %hSndBoom %GLOBAL_VOLUME;
 };
@@ -43,7 +43,7 @@ function handleExplosions void()
 		++ iExplosionFCount;
 		
 		call storeAttrValue("%arrExplosions[%iterator]", "framecount", %iExplosionFCount) => szExplosionPair;
-		store_item_to_array szExplosionPair arrExplosions %iterator;
+		array_item_set szExplosionPair arrExplosions %iterator;
 		
 		dx.gfx.drawsprite %hExplosionSprite %iExplosionXPos %iExplosionYPos %iExplosionFCount %fExplosionScale %fExplosionScale false 0 0 0 0;
 	};
@@ -63,6 +63,6 @@ function disposeExplosion void()
 		set hExplosionSprite <= %szQueryValue;
 		
 		dx.gfx.freesprite %hExplosionSprite;
-		item_remove arrExplosions 0;
+		array_item_remove arrExplosions 0;
 	};
 };

@@ -25,7 +25,7 @@ function spawnAsteroid void()
 	
 	set szAsteroidPair <= "handle:%hAsteroidSprite,xpos:%iRandomPos,ypos:-25,rot:0.00,speed:%iRandomSpeed,dispose:false";
 	
-	item_append arrAsteroids "%szAsteroidPair";
+	array_item_append arrAsteroids "%szAsteroidPair";
 };
 
 function handleAsteroids void()
@@ -62,10 +62,10 @@ function handleAsteroids void()
 		};
 		
 		call storeAttrValue("%arrAsteroids[%iterator]", "ypos", %iAsteroidYPos) => szAsteroidPair;
-		store_item_to_array szAsteroidPair arrAsteroids %iterator;
+		array_item_set szAsteroidPair arrAsteroids %iterator;
 
 		call storeAttrValue("%arrAsteroids[%iterator]", "rot", %fRotation) => szAsteroidPair;
-		store_item_to_array szAsteroidPair arrAsteroids %iterator;
+		array_item_set szAsteroidPair arrAsteroids %iterator;
 		
 		dx.gfx.drawsprite %hAsteroidSprite %iAsteroidXPos %iAsteroidYPos 0 %fRotation 0.0 false 0 0 0 0;
 	};
@@ -156,7 +156,7 @@ function disposeAsteroid void()
 		set hAsteroidSprite <= %szQueryValue;
 	
 		dx.gfx.freesprite %hAsteroidSprite;
-		item_remove arrAsteroids 0;
+		array_item_remove arrAsteroids 0;
 	};
 };
 
@@ -179,7 +179,7 @@ function clearAsteroids void()
 				set hAsteroidSprite <= %szQueryValue;
 				
 				dx.gfx.freesprite %hAsteroidSprite;
-				item_remove arrAsteroids %astloop;
+				array_item_remove arrAsteroids %astloop;
 				
 				set bDoSkip <= true;
 			};

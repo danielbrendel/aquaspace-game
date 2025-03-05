@@ -70,8 +70,8 @@ function restartGame void()
 	
 	call initPlayer() => szPlayerAttributes;
 	
-	resize_array arrAsteroids 0;
-	resize_array arrPlayerBullets 0;
+	array_resize arrAsteroids 0;
+	array_resize arrPlayerBullets 0;
 	
 	set bGameRunning <= true;
 };
