@@ -1,2 +1,2 @@
 @echo off
-dnyAquaShell.exe "%cd%\src\game.dnys" %*
+start "" dnyAquaShell.exe "%cd%\src\game.dnys" %*
