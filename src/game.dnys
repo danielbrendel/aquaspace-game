@@ -7,6 +7,8 @@ require "dx.graphics";
 require "dx.sound";
 require "strings";
 
+hideconsole;
+
 global szScriptPath string;
 global bDxValid bool;
 global hDefFont int;
