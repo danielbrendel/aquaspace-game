@@ -96,7 +96,7 @@ function DXWND_OnCreate void(hWnd int)
 	
 	dx.gfx.setbgimage "%szScriptPath/../assets/sprites/background.png";
 	
-	dx.gfx.loadsprite "%szScriptPath/../assets/sprites/player.png" 1 93 101 1 false hPlayerSprite;
+	dx.gfx.loadsprite "%szScriptPath/../assets/sprites/player.png" 1 99 75 1 false hPlayerSprite;
 	if (%hPlayerSprite, -eq, %INVALID_DX_HANDLE) {
         print "Failed to load player sprite!";
     };

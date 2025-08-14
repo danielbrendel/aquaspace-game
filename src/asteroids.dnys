@@ -13,7 +13,7 @@ function spawnAsteroid void()
 	-= iBarPos %BORDER_BARS;
 	-= iBarPos 64;
 	
-	random 0 4 iRandomAst; ++ iRandomAst;
+	random 0 2 iRandomAst; ++ iRandomAst;
 	random %BORDER_BARS %iBarPos iRandomPos;
 	random 2 5 iRandomSpeed; ++ iRandomSpeed;
 	
@@ -21,7 +21,7 @@ function spawnAsteroid void()
 		set iRandomPos <= %BORDER_BARS;
 	};
 	
-	dx.gfx.loadsprite "%szScriptPath/../assets/sprites/asteroid%iRandomAst.png" 1 64 64 1 false hAsteroidSprite;
+	dx.gfx.loadsprite "%szScriptPath/../assets/sprites/asteroid%iRandomAst.png" 1 43 43 1 false hAsteroidSprite;
 	
 	set szAsteroidPair <= "handle:%hAsteroidSprite,xpos:%iRandomPos,ypos:-25,rot:0.00,speed:%iRandomSpeed,dispose:false";
 	
@@ -107,11 +107,11 @@ function collideAsteroids void()
 		if (%iPlayerXPos, -gr, %iAsteroidXPos) {
 			if (%iPlayerYPos, -gr, %iAsteroidYPos) {
 				set iCalcWidth <= %iAsteroidXPos;
-				+= iCalcWidth 101;
+				+= iCalcWidth 100;
 				
 				if (%iPlayerXPos, -ls, %iCalcWidth) {
 					set iCalcHeight <= %iAsteroidYPos;
-					+= iCalcHeight 93;
+					+= iCalcHeight 75;
 					
 					if (%iPlayerYPos, -ls, %iCalcHeight) {
 						if (%bMayBeHit, -eq, true) {
