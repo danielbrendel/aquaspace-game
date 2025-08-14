@@ -5,7 +5,7 @@ function spawnBullet void(xpos int, ypos int)
 	local szBulletPair string;
 	local hBulletSprite int;
 	
-	dx.gfx.loadsprite "%szScriptPath/../assets/sprites/laser.bmp" 1 8 42 1 false hBulletSprite;
+	dx.gfx.loadsprite "%szScriptPath/../assets/sprites/laser.png" 1 9 37 1 false hBulletSprite;
 	
 	set szBulletPair <= "handle:%hBulletSprite,xpos:%xpos,ypos:%ypos,dispose:false";
 	

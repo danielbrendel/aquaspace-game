@@ -5,7 +5,7 @@ function spawnExplosion void(xpos int, ypos int, scale int)
 	local szExplosionPair string;
 	local hExplosionSprite int;
 
-	dx.gfx.loadsprite "%szScriptPath/../assets/sprites/explosion.png" 17 128 128 17 false hExplosionSprite;
+	dx.gfx.loadsprite "%szScriptPath/../assets/sprites/explosion.png" 6 128 128 6 false hExplosionSprite;
 	
 	set szExplosionPair <= "handle:%hExplosionSprite,xpos:%xpos,ypos:%ypos,framecount:0,scale:%scale,dispose:0";
 	
@@ -58,7 +58,7 @@ function disposeExplosion void()
 	call queryAttrValue("%arrExplosions[0]", "framecount") => szQueryValue;
 	set iFrameCount <= %szQueryValue;
 	
-	if (%iFrameCount, -gre, 17) {
+	if (%iFrameCount, -gre, 6) {
 		call queryAttrValue("%arrExplosions[0]", "handle") => szQueryValue;
 		set hExplosionSprite <= %szQueryValue;
 		
