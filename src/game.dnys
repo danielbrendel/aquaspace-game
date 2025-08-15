@@ -101,7 +101,7 @@ function DXWND_OnCreate void(hWnd int)
         print "Failed to load player sprite!";
     };
 	
-	dx.gfx.loadsprite "%szScriptPath/../assets/sprites/button.png" 1 190 49 1 false hButton;
+	dx.gfx.loadsprite "%szScriptPath/../assets/sprites/button.png" 1 190 45 1 false hButton;
 	if (%hButton, -eq, %INVALID_DX_HANDLE) {
 		print "Failed to load button image";
 	};
